@@ -1,0 +1,37 @@
+name: lwe-estimator
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  estimate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SageMath
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sagemath
+
+      - name: Install lattice-estimator
+        run: |
+          sage -pip install --upgrade pip
+          sage -pip install fpylll cysignals
+          git clone --depth 1 https://github.com/malb/lattice-estimator.git /tmp/lattice-estimator
+          sage -pip install -e /tmp/lattice-estimator
+
+      - name: Run
+        run: |
+          set -o pipefail
+          sage -python run_lwe.sage | tee lwe_estimator_output.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lwe-estimator-output
+          path: lwe_estimator_output.txt
+          if-no-files-found: error

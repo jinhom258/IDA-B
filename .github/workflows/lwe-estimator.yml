@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   estimate:
@@ -32,8 +32,17 @@ jobs:
           set -o pipefail
           sage -python run_lwe.sage | tee lwe_estimator_output.txt
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload output
+        uses: actions/upload-artifact@v4
         with:
           name: lwe-estimator-output
           path: lwe_estimator_output.txt
           if-no-files-found: error
+
+      - name: Commit output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add lwe_estimator_output.txt
+          git commit -m "add lwe estimator output [skip ci]"
+          git push
